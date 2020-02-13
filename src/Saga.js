@@ -1,7 +1,7 @@
 // @flow
 
-import {PermissionsAndroid, Platform} from 'react-native';
-import {buffers, eventChannel} from 'redux-saga';
+import { PermissionsAndroid, Platform } from 'react-native';
+import { buffers, eventChannel } from 'redux-saga';
 import {
   fork,
   cancel,
@@ -32,7 +32,7 @@ import {
   State,
   LogLevel,
 } from 'react-native-ble-plx';
-import {SensorTagTests} from './Tests';
+import { SensorTagTests } from './Tests';
 
 export function* bleSaga(): Generator<*, *, *> {
   yield put(log('BLE saga started...'));
@@ -61,7 +61,7 @@ function* handleBleState(manager: BleManager): Generator<*, *, *> {
   }, buffers.expanding(1));
 
   try {
-    for (;;) {
+    for (; ;) {
       const newState = yield take(stateChannel);
       yield put(bleStateUpdated(newState));
     }
@@ -88,7 +88,7 @@ function* handleScanning(manager: BleManager): Generator<*, *, *> {
     'UPDATE_CONNECTION_STATE',
   ]);
 
-  for (;;) {
+  for (; ;) {
     const action:
       | BleStateUpdatedAction
       | UpdateConnectionStateAction = yield take(channel);
@@ -148,13 +148,13 @@ function* scan(manager: BleManager): Generator<*, *, *> {
   const scanningChannel = yield eventChannel(emit => {
     manager.startDeviceScan(
       null,
-      {allowDuplicates: true},
+      { allowDuplicates: true },
       (error, scannedDevice) => {
         if (error) {
           emit([error, scannedDevice]);
           return;
         }
-        if (scannedDevice != null && scannedDevice.localName === 'SensorTag') {
+        if (scannedDevice != null && scannedDevice.localName === 'PINKY-4B8F') {
           emit([error, scannedDevice]);
         }
       },
@@ -165,8 +165,8 @@ function* scan(manager: BleManager): Generator<*, *, *> {
   }, buffers.expanding(1));
 
   try {
-    for (;;) {
-      const [error, scannedDevice]: [?BleError, ?Device] = yield take(
+    for (; ;) {
+      const [error, scannedDevice]: [?BleError,?Device] = yield take(
         scanningChannel,
       );
       if (error != null) {
@@ -187,13 +187,13 @@ function* scan(manager: BleManager): Generator<*, *, *> {
 function* handleConnection(manager: BleManager): Generator<*, *, *> {
   var testTask = null;
 
-  for (;;) {
+  for (; ;) {
     // Take action
-    const {device}: ConnectAction = yield take('CONNECT');
+    const { device }: ConnectAction = yield take('CONNECT');
 
     const disconnectedChannel = yield eventChannel(emit => {
       const subscription = device.onDisconnected(error => {
-        emit({type: 'DISCONNECTED', error: error});
+        emit({ type: 'DISCONNECTED', error: error });
       });
       return () => {
         subscription.remove();
@@ -212,8 +212,8 @@ function* handleConnection(manager: BleManager): Generator<*, *, *> {
       yield call([device, device.discoverAllServicesAndCharacteristics]);
       yield put(updateConnectionState(ConnectionState.CONNECTED));
 
-      for (;;) {
-        const {deviceAction, disconnected} = yield race({
+      for (; ;) {
+        const { deviceAction, disconnected } = yield race({
           deviceAction: take(deviceActionChannel),
           disconnected: take(disconnectedChannel),
         });
